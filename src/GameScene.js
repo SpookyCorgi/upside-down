@@ -4,22 +4,22 @@ class GameScene extends Phaser.Scene {
             key: "GameScene"
         })
     }
+
     preload() {
         this.load.image('bgBase', 'assets/background/base.png');
         this.load.image('flyingSpaghetti', 'assets/flying_spaghetti.png');
         this.load.image('moon', 'assets/moon/moon.png');
         this.load.image('clownMoon', 'assets/moon/clown_moon.png');
-        this.load.image('bgGround_0', 'assets/background/0.png');
-        this.load.image('bgGround_1', 'assets/background/1.png');
-        this.load.image('bgGround_2', 'assets/background/2.png');
-        this.load.image('bgGround_3', 'assets/background/3.png');
+        this.load.image('physGround', 'assets/background/physic_ground.png');
         this.load.spritesheet('bgGround', 'assets/background/spritesheet.png', { frameWidth: 128, frameHeight: 256 })
         this.load.spritesheet('corgi', 'assets/corgi/spritesheet.png', { frameWidth: 128, frameHeight: 128 });
         this.load.spritesheet('lego', 'assets/lego/spritesheet.png', { frameWidth: 128, frameHeight: 128 });
     }
 
     create() {
-        this.add.image(0, 0, 'bgBase').setOrigin(0, 0)
+        this.cameras.main.setBackgroundColor("#ffffff")
+        this.physGround = this.physics.add.staticSprite(100, this.game.config.height / 2 + 60, 'physGround')
+        this.add.image(0, this.game.config.height / 2, 'bgBase').setOrigin(0, 0)
         this.groundGroup = this.add.group(
             {
                 removeCallback: function (ground) {
@@ -40,9 +40,23 @@ class GameScene extends Phaser.Scene {
         }
 
         this.add.image(1400, 100, 'moon')
-        this.add.image(1400, 512 - 100, 'clownMoon')
+        this.add.image(1400, this.game.config.height - 100, 'clownMoon')
 
-        // group with all active grounds.
+        this.corgi = this.physics.add.sprite(100, this.game.config.height / 2 - 68, 'corgi')
+
+        this.anims.create({
+            key: 'run',
+            frames: this.anims.generateFrameNumbers('corgi', { start: 3, end: 0 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.physics.add.collider(this.corgi, this.physGround);
+
+        this.keyObj = this.input.keyboard.addKey('SPACE');  // Get key object
+        this.keyObj.on('down', function (event) {
+            this.corgi.setVelocityY(-800)
+        }, this);
     }
 
 
@@ -61,6 +75,7 @@ class GameScene extends Phaser.Scene {
     }
 
     update() {
+        this.corgi.anims.play('run', true)
         //console.log("pool:" + this.groundPool.getLength())
         //console.log("group:" + this.groundGroup.getLength())
 
