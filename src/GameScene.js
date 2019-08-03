@@ -5,6 +5,9 @@ class GameScene extends Phaser.Scene {
         })
     }
 
+    init() {
+        this.ratio = window.innerWidth / window.innerHeight
+    }
     preload() {
         this.load.image('bgBase', 'assets/background/base.png');
         this.load.image('flyingSpaghetti', 'assets/flying_spaghetti.png');
@@ -39,8 +42,9 @@ class GameScene extends Phaser.Scene {
             this.addGround(pos)
         }
 
-        this.add.image(1400, 100, 'moon')
-        this.add.image(1400, this.game.config.height - 100, 'clownMoon')
+
+        this.add.image(this.game.config.height * this.ratio, 0, 'moon').setOrigin(1, 0)
+        this.add.image(this.game.config.height * this.ratio, this.game.config.height, 'clownMoon').setOrigin(1)
 
         this.corgi = this.physics.add.sprite(100, this.game.config.height / 2 - 68, 'corgi')
 
