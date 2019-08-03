@@ -1,7 +1,13 @@
+let gameWidth = 1536
+let gameHeight = 1024
+let ratio = window.innerWidth / window.innerHeight
+if (ratio < 1) {
+    gameWidth = 768
+}
 let config = {
     type: Phaser.AUTO,
-    width: 1536,
-    height: 1024,
+    width: gameWidth,
+    height: gameHeight,
     physics: {
         default: 'arcade',
         arcade: {
@@ -10,11 +16,11 @@ let config = {
         }
     },
     scale: {
-        mode: Phaser.Scale.ENVELOP,
-        autoCenter: Phaser.Scale.CENTER_VERTICALLY
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_HORIZONTALLY
     },
     scene: [
-        GameScene
+        LoadScene, GameScene
     ]
 };
 

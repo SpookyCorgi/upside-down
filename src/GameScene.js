@@ -5,9 +5,6 @@ class GameScene extends Phaser.Scene {
         })
     }
 
-    init() {
-        this.ratio = window.innerWidth / window.innerHeight
-    }
     preload() {
         this.load.image('bgBase', 'assets/background/base.png');
         this.load.image('flyingSpaghetti', 'assets/flying_spaghetti.png');
@@ -43,15 +40,15 @@ class GameScene extends Phaser.Scene {
         }
 
 
-        this.add.image(this.game.config.height * this.ratio, 0, 'moon').setOrigin(1, 0)
-        this.add.image(this.game.config.height * this.ratio, this.game.config.height, 'clownMoon').setOrigin(1)
+        this.add.image(this.game.config.width, 0, 'moon').setOrigin(1, 0)
+        this.add.image(this.game.config.width, this.game.config.height, 'clownMoon').setOrigin(1)
 
         this.corgi = this.physics.add.sprite(100, this.game.config.height / 2 - 68, 'corgi')
 
         this.anims.create({
             key: 'run',
             frames: this.anims.generateFrameNumbers('corgi', { start: 3, end: 0 }),
-            frameRate: 10,
+            frameRate: 20,
             repeat: -1
         });
 
@@ -59,8 +56,11 @@ class GameScene extends Phaser.Scene {
 
         this.keyObj = this.input.keyboard.addKey('SPACE');  // Get key object
         this.keyObj.on('down', function (event) {
-            this.corgi.setVelocityY(-800)
-        }, this);
+            this.corgi.setVelocityY(-1000)
+        }, this)
+        this.input.on('pointerdown', function (pointer) {
+            this.corgi.setVelocityY(-1000)
+        }, this)
     }
 
 
@@ -84,7 +84,7 @@ class GameScene extends Phaser.Scene {
         //console.log("group:" + this.groundGroup.getLength())
 
         this.groundGroup.getChildren().forEach(function (ground) {
-            ground.x -= 2
+            ground.x -= 10
             if (ground.x <= -64) {
                 this.groundGroup.killAndHide(ground)
                 this.groundGroup.remove(ground)
