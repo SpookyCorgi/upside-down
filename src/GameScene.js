@@ -61,8 +61,8 @@ class GameScene extends Phaser.Scene {
     }
 
     update() {
-        console.log("pool:" + this.groundPool.getLength())
-        console.log("group:" + this.groundGroup.getLength())
+        //console.log("pool:" + this.groundPool.getLength())
+        //console.log("group:" + this.groundGroup.getLength())
 
         this.groundGroup.getChildren().forEach(function (ground) {
             ground.x -= 2
