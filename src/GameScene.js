@@ -56,6 +56,7 @@ class GameScene extends Phaser.Scene {
                 this.scene.restart()
             }
             this.corgi.setVelocityY(this.jumpVelocity)
+            this.reverseCorgi.setVelocityY(-this.jumpVelocity)
         }, this)
 
         //set time in create before update
