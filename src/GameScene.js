@@ -3,11 +3,13 @@ class GameScene extends Phaser.Scene {
         super({
             key: "GameScene"
         })
-
+        this.highscore = 0
     }
 
     init() {
-        this.speed = -700
+        this.baseSpeed = -800
+        this.speed = -800
+        this.speedLimit = -1600
         this.groundMargin = 4
         this.gameOver = false
         this.time = 0
@@ -15,6 +17,9 @@ class GameScene extends Phaser.Scene {
         this.gravity = 4000
         this.jumpVelocity = -1500
         this.spawnDistance = 1536
+        this.maxDisLimit = 1500
+        this.minDisLimit = 1000
+        this.disLimit = 1000
     }
 
     preload() {
@@ -25,8 +30,9 @@ class GameScene extends Phaser.Scene {
         this.load.image('physGround', 'assets/background/physic_ground.png');
         this.load.spritesheet('bgGround', 'assets/background/spritesheet.png', { frameWidth: 128, frameHeight: 256 })
         this.load.spritesheet('corgi', 'assets/corgi/spritesheet.png', { frameWidth: 128, frameHeight: 128 });
-        this.load.spritesheet('reverseCorgi', 'assets/reversed-corgi/spritesheet.png', { frameWidth: 128, frameHeight: 128 });
+        this.load.spritesheet('reversedCorgi', 'assets/reversed-corgi/spritesheet.png', { frameWidth: 128, frameHeight: 128 });
         this.load.atlas('lego', 'assets/lego/lego.png', 'assets/lego/lego.json')
+        this.load.atlas('reversedLego', 'assets/lego/reversed_lego.png', 'assets/lego/reversed_lego.json')
     }
 
     create() {
@@ -38,7 +44,7 @@ class GameScene extends Phaser.Scene {
         //collider
         this.physics.add.collider(this.corgi, this.physGround)
         this.physics.add.overlap(this.corgi, this.legoGroup, this.touchLego, null, this)
-        this.physics.add.collider(this.reverseCorgi, this.reversePhysGround)
+        this.physics.add.collider(this.reversedCorgi, this.reversedPhysGround)
 
 
         //input
@@ -59,8 +65,8 @@ class GameScene extends Phaser.Scene {
             if (this.corgi.body.touching.down) {
                 this.corgi.setVelocityY(this.jumpVelocity)
             }
-            if (this.reverseCorgi.body.touching.up) {
-                this.reverseCorgi.setVelocityY(-this.jumpVelocity)
+            if (this.reversedCorgi.body.touching.up) {
+                this.reversedCorgi.setVelocityY(-this.jumpVelocity)
             }
 
         }, this)
@@ -75,8 +81,8 @@ class GameScene extends Phaser.Scene {
 
         this.physGround = this.physics.add.staticImage(100, this.game.config.height / 2 - this.groundMargin, 'physGround').setOrigin(0.5, 0)
         this.physGround.refreshBody()
-        this.reversePhysGround = this.physics.add.staticImage(100, this.game.config.height / 2 + this.groundMargin, 'physGround').setOrigin(0.5, 1)
-        this.reversePhysGround.refreshBody()
+        this.reversedPhysGround = this.physics.add.staticImage(100, this.game.config.height / 2 + this.groundMargin, 'physGround').setOrigin(0.5, 1)
+        this.reversedPhysGround.refreshBody()
 
         this.add.image(0, this.game.config.height / 2, 'bgBase').setOrigin(0, 0)
 
@@ -125,12 +131,32 @@ class GameScene extends Phaser.Scene {
                 }
             }
         )
-        this.addLego(this.spawnDistance)
+
+
+        //creating lego pooling system
+        this.reversedLegoGroup = this.add.group(
+            {
+                removeCallback: function (lego) {
+                    lego.scene.reversedLegoPool.add(lego)
+                }
+            }
+        )
+        this.reversedLegoPool = this.add.group(
+            {
+                removeCallback: function (lego) {
+                    lego.scene.reversedLegoGroup.add(lego)
+                }
+            }
+        )
+
+        this.addLego(this.spawnDistance, Phaser.Math.Between(0, 1), 'topAndBottom')
     }
 
     createCorgi() {
         //main character corgi
         this.corgi = this.physics.add.sprite(100, this.game.config.height / 2 - this.groundMargin, 'corgi').setOrigin(0.5, 1)
+        this.corgi.setSize(115, 60)
+        this.corgi.setOffset(0, 68)
         this.corgi.setGravityY(this.gravity)
 
         this.anims.create({
@@ -152,26 +178,26 @@ class GameScene extends Phaser.Scene {
             frameRate: 20
         });
 
-        //main character reverse corgi
-        this.reverseCorgi = this.physics.add.sprite(100, this.game.config.height / 2 + this.groundMargin, 'reverseCorgi').setOrigin(0.5, 0)
-        this.reverseCorgi.setGravityY(-this.gravity)
+        //main character reversed corgi
+        this.reversedCorgi = this.physics.add.sprite(100, this.game.config.height / 2 + this.groundMargin, 'reversedCorgi').setOrigin(0.5, 0)
+        this.reversedCorgi.setGravityY(-this.gravity)
 
         this.anims.create({
-            key: 'reverseRun',
-            frames: this.anims.generateFrameNumbers('reverseCorgi', { start: 0, end: 3 }),
+            key: 'reversedRun',
+            frames: this.anims.generateFrameNumbers('reversedCorgi', { start: 0, end: 3 }),
             frameRate: 20,
             repeat: -1
         });
 
         this.anims.create({
-            key: 'reverseJump',
-            frames: [{ key: 'reverseCorgi', frame: 0 }],
+            key: 'reversedJump',
+            frames: [{ key: 'reversedCorgi', frame: 0 }],
             frameRate: 20
         });
 
         this.anims.create({
-            key: 'reverseScared',
-            frames: [{ key: 'reverseCorgi', frame: 4 }],
+            key: 'reversedScared',
+            frames: [{ key: 'reversedCorgi', frame: 4 }],
             frameRate: 20
         });
 
@@ -192,45 +218,76 @@ class GameScene extends Phaser.Scene {
         this.groundPool.remove(ground)
     }
 
-    addLego(posX, count) {
-        let lego
-        let type = Phaser.Math.Between(0, 8).toString()
+    addLego(posX, count, topOrBottom) {
+        let layer = Phaser.Math.Between(0, 1)
+        let furthestX = 0
 
-        let poolLength = this.legoPool.getLength()
-        let existed = false
-        for (let i = 0; i < poolLength; i++) {
-            //console.log(poolLength)
-            if (this.legoPool.getChildren()[i].getData('type') === type) {
-                existed = true
+        for (let i = 0; i <= layer; i++) {
 
-                lego = this.legoPool.getChildren()[i]
-                lego.x = posX
-                lego.active = true
-                lego.visible = true
-                this.legoPool.remove(lego)
-                break
+            let type = Phaser.Math.Between(0, 2)
+
+            let x = posX + 40 * Phaser.Math.Between(0, 2 - type)
+            let y = game.config.height / 2 - this.groundMargin - 44 * i
+            let reversedY = game.config.height / 2 + this.groundMargin + 44 * i
+
+            if (topOrBottom === 'top' || topOrBottom === 'topAndBottom') {
+                let lego = this.poolingLego(x, y, type, i, this.legoPool, this.legoGroup, 'lego', 1)
+
+                lego.setVelocityX(this.speed)
+
+                furthestX = Math.max(furthestX, (lego.x + lego.width))
             }
+
+            if (topOrBottom === 'bottom' || topOrBottom === 'topAndBottom') {
+                let lego = this.poolingLego(x, reversedY, type, i, this.reversedLegoPool, this.reversedLegoGroup, 'reversedLego', 0)
+
+                lego.setVelocityX(this.speed)
+
+                furthestX = Math.max(furthestX, (lego.x + lego.width))
+            }
+
         }
 
-
-        if (!existed) {
-            lego = this.physics.add.image(posX, game.config.height / 2 - this.groundMargin, 'lego', type).setOrigin(0, 1)
-            lego.setData('type', type)
-            this.legoGroup.add(lego)
-        }
-
-        lego.setVelocityX(this.speed)
         if (count) {
-            this.addLego(lego.x + lego.width, 0)
+            this.addLego(furthestX, 0, topOrBottom)
         }
 
         //console.log(this.legoPool.getLength())
     }
 
+    poolingLego(x, y, type, layer, pool, group, source, originY) {
+        let lego
+        let poolLength = pool.getLength()
+        let existed = false
+        for (let j = 0; j < poolLength; j++) {
+            console.log(poolLength)
+            if (pool.getChildren()[j].getData('type') === type) {
+                existed = true
+
+                lego = pool.getChildren()[j]
+                lego.x = x
+                lego.y = y
+                lego.active = true
+                lego.visible = true
+                pool.remove(lego)
+                lego.depth = layer
+                break
+            }
+        }
+
+        if (!existed) {
+            lego = this.physics.add.image(x, y, source, type).setOrigin(0, originY)
+            lego.setData('type', type)
+            group.add(lego)
+        }
+
+        return lego
+    }
     touchLego() {
         //console.log("fuck")
         this.physics.pause()
         this.gameOver = true
+        this.highscore = Math.max(this.highscore, Math.floor(this.score))
     }
 
     update() {
@@ -239,7 +296,9 @@ class GameScene extends Phaser.Scene {
             let deltaTime = Date.now() - this.time
             this.time = Date.now()
             this.score += deltaTime / 100000 * -this.speed
-            this.scoreText.setText('Score: ' + Math.floor(this.score));
+            this.scoreText.setText('Score: ' + Math.floor(this.score) + ' Highscore: ' + this.highscore);
+
+            this.speed = Math.max(this.baseSpeed - this.score, this.speedLimit)
         }
 
 
@@ -252,33 +311,35 @@ class GameScene extends Phaser.Scene {
             this.corgi.anims.play('scared', true)
         }
         else if (!this.corgi.body.touching.down) {
-            this.corgi.anims.play('jump', true)
+            //this.corgi.anims.play('jump', true)
         } else {
             this.corgi.anims.play('run', true)
         }
 
-        //reverse corgi status
-        if (this.keyObj.isDown && this.reverseCorgi.body.touching.up) {
-            this.reverseCorgi.setVelocityY(-this.jumpVelocity)
+        //reversed corgi status
+        if (this.keyObj.isDown && this.reversedCorgi.body.touching.up) {
+            this.reversedCorgi.setVelocityY(-this.jumpVelocity)
         }
 
         if (this.gameOver) {
-            this.reverseCorgi.anims.play('reverseScared', true)
+            this.reversedCorgi.anims.play('reversedScared', true)
         }
-        else if (!this.reverseCorgi.body.touching.up) {
-            this.reverseCorgi.anims.play('reverseJump', true)
+        else if (!this.reversedCorgi.body.touching.up) {
+            //this.reversedCorgi.anims.play('reversedJump', true)
         } else {
-            this.reverseCorgi.anims.play('reverseRun', true)
+            this.reversedCorgi.anims.play('reversedRun', true)
         }
 
 
-
+        //testing limit
+        let close = false
 
         //spawning lego
         let minDistance = this.spawnDistance
         //we are removing array items here so it is really important not to use foreach but use for loop backwards
         for (let i = this.legoGroup.getLength() - 1; i >= 0; i--) {
             let lego = this.legoGroup.getChildren()[i]
+            lego.setVelocityX(this.speed)
             let legoDistance = this.spawnDistance - lego.x - lego.width;
             minDistance = Math.min(minDistance, legoDistance);
             if (lego.x <= -lego.width) {
@@ -286,15 +347,77 @@ class GameScene extends Phaser.Scene {
                 this.legoGroup.killAndHide(lego)
                 this.legoGroup.remove(lego)
             }
+
+
+            //testing limit
+            let limit
+            if (this.score < 300) {
+                limit = 300
+            } else {
+                limit = 400
+            }
+            if (lego.x < limit) {
+                close = true
+            }
         }
-        if (minDistance > 1000) {
-            this.addLego(this.spawnDistance, Phaser.Math.Between(0, 1))
+
+        //reversed lego
+        for (let i = this.reversedLegoGroup.getLength() - 1; i >= 0; i--) {
+            let lego = this.reversedLegoGroup.getChildren()[i]
+            lego.setVelocityX(this.speed)
+            let legoDistance = this.spawnDistance - lego.x - lego.width;
+            minDistance = Math.min(minDistance, legoDistance);
+            if (lego.x <= -lego.width) {
+                lego.setVelocityX(0)
+                this.reversedLegoGroup.killAndHide(lego)
+                this.reversedLegoGroup.remove(lego)
+            }
+
+
+            //testing limit
+            let limit
+            if (this.score < 300) {
+                limit = 300
+            } else {
+                limit = 400
+            }
+            if (lego.x < limit) {
+                close = true
+            }
+        }
+
+
+        //testing limit
+        /*if (close && this.corgi.body.touching.down) {
+            this.corgi.setVelocityY(this.jumpVelocity)
+            this.reversedCorgi.setVelocityY(-this.jumpVelocity)
+
+        }*/
+
+
+        if (minDistance > this.disLimit) {
+            this.disLimit = Phaser.Math.Between(this.minDisLimit, this.maxDisLimit)
+            let tob
+            if (this.score < 300) {
+                tob = 'topAndBottom'
+            } else {
+                let num = Phaser.Math.Between(0, 8)
+                if (num < 3) {
+                    tob = 'topAndBottom'
+                } else if (num < 6) {
+                    tob = 'top'
+                } else {
+                    tob = 'bottom'
+                }
+            }
+            this.addLego(this.spawnDistance, Phaser.Math.Between(0, 1), tob)
         }
 
 
         //moving background
         for (let i = this.groundGroup.getLength() - 1; i >= 0; i--) {
             let ground = this.groundGroup.getChildren()[i]
+            ground.setVelocityX(this.speed)
             if (ground.x <= -ground.width / 2) {
                 this.groundGroup.killAndHide(ground)
                 this.groundGroup.remove(ground)
