@@ -14,6 +14,7 @@ class GameScene extends Phaser.Scene {
         this.score = 0
         this.gravity = 4000
         this.jumpVelocity = -1500
+        this.spawnDistance = 1536
     }
 
     preload() {
@@ -55,8 +56,13 @@ class GameScene extends Phaser.Scene {
                 this.gameOver = false
                 this.scene.restart()
             }
-            this.corgi.setVelocityY(this.jumpVelocity)
-            this.reverseCorgi.setVelocityY(-this.jumpVelocity)
+            if (this.corgi.body.touching.down) {
+                this.corgi.setVelocityY(this.jumpVelocity)
+            }
+            if (this.reverseCorgi.body.touching.up) {
+                this.reverseCorgi.setVelocityY(-this.jumpVelocity)
+            }
+
         }, this)
 
         //set time in create before update
@@ -119,7 +125,7 @@ class GameScene extends Phaser.Scene {
                 }
             }
         )
-        this.addLego(this.game.config.width)
+        this.addLego(this.spawnDistance)
     }
 
     createCorgi() {
@@ -269,11 +275,11 @@ class GameScene extends Phaser.Scene {
 
 
         //spawning lego
-        let minDistance = this.game.config.width
+        let minDistance = this.spawnDistance
         //we are removing array items here so it is really important not to use foreach but use for loop backwards
         for (let i = this.legoGroup.getLength() - 1; i >= 0; i--) {
             let lego = this.legoGroup.getChildren()[i]
-            let legoDistance = this.game.config.width - lego.x - lego.width;
+            let legoDistance = this.spawnDistance - lego.x - lego.width;
             minDistance = Math.min(minDistance, legoDistance);
             if (lego.x <= -lego.width) {
                 lego.setVelocityX(0)
@@ -282,7 +288,7 @@ class GameScene extends Phaser.Scene {
             }
         }
         if (minDistance > 1000) {
-            this.addLego(this.game.config.width, Phaser.Math.Between(0, 1))
+            this.addLego(this.spawnDistance, Phaser.Math.Between(0, 1))
         }
 
 
