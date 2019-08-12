@@ -24,7 +24,10 @@ class GameScene extends Phaser.Scene {
         this.limitRange = 500
         this.disLimit = 1000
 
-        this.testing = false
+        this.testing = true
+        if (this.testing) {
+            this.score = 900
+        }
     }
 
     preload() {
@@ -424,7 +427,7 @@ class GameScene extends Phaser.Scene {
                     tob = 'bottom'
                 }
             }
-            console.log(Math.max(this.disLimit - 1500, 0))
+            //console.log(Math.max(this.disLimit - 1500, 0))
             this.addLego(1500 + Math.max(this.disLimit - 1500, 0), Phaser.Math.Between(0, 1), tob)
         }
 
