@@ -24,7 +24,7 @@ class GameScene extends Phaser.Scene {
         this.limitRange = 500
         this.disLimit = 1000
 
-        this.testing = true
+        this.testing = false
         if (this.testing) {
             this.score = 900
         }
