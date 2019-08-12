@@ -9,7 +9,7 @@ class GameScene extends Phaser.Scene {
     init() {
         this.baseSpeed = -800
         this.speed = -800
-        this.speedLimit = -1600
+        this.speedLimit = -1700
         this.groundMargin = 4
         this.gameOver = false
         this.time = 0
@@ -17,9 +17,14 @@ class GameScene extends Phaser.Scene {
         this.gravity = 4000
         this.jumpVelocity = -1500
         this.spawnDistance = 1536
-        this.maxDisLimit = 1500
+        this.maxDisLimit = 2000
         this.minDisLimit = 1000
+        this.maxLimitRange = (this.maxDisLimit - this.minDisLimit) / 2
+        this.minLimitRange = 200
+        this.limitRange = 500
         this.disLimit = 1000
+
+        this.testing = false
     }
 
     preload() {
@@ -45,6 +50,7 @@ class GameScene extends Phaser.Scene {
         this.physics.add.collider(this.corgi, this.physGround)
         this.physics.add.overlap(this.corgi, this.legoGroup, this.touchLego, null, this)
         this.physics.add.collider(this.reversedCorgi, this.reversedPhysGround)
+        this.physics.add.overlap(this.reversedCorgi, this.reversedLegoGroup, this.touchLego, null, this)
 
 
         //input
@@ -155,8 +161,8 @@ class GameScene extends Phaser.Scene {
     createCorgi() {
         //main character corgi
         this.corgi = this.physics.add.sprite(100, this.game.config.height / 2 - this.groundMargin, 'corgi').setOrigin(0.5, 1)
-        this.corgi.setSize(115, 60)
-        this.corgi.setOffset(0, 68)
+        this.corgi.setSize(115, 100)
+        this.corgi.setOffset(0, 28)
         this.corgi.setGravityY(this.gravity)
 
         this.anims.create({
@@ -180,6 +186,8 @@ class GameScene extends Phaser.Scene {
 
         //main character reversed corgi
         this.reversedCorgi = this.physics.add.sprite(100, this.game.config.height / 2 + this.groundMargin, 'reversedCorgi').setOrigin(0.5, 0)
+        this.reversedCorgi.setSize(115, 100)
+        this.reversedCorgi.setOffset(0, 0)
         this.reversedCorgi.setGravityY(-this.gravity)
 
         this.anims.create({
@@ -260,7 +268,7 @@ class GameScene extends Phaser.Scene {
         let poolLength = pool.getLength()
         let existed = false
         for (let j = 0; j < poolLength; j++) {
-            console.log(poolLength)
+            //console.log(poolLength)
             if (pool.getChildren()[j].getData('type') === type) {
                 existed = true
 
@@ -299,6 +307,7 @@ class GameScene extends Phaser.Scene {
             this.scoreText.setText('Score: ' + Math.floor(this.score) + ' Highscore: ' + this.highscore);
 
             this.speed = Math.max(this.baseSpeed - this.score, this.speedLimit)
+            this.limitRange = Math.max(this.minLimitRange, this.maxLimitRange - this.score / 5)
         }
 
 
@@ -351,10 +360,10 @@ class GameScene extends Phaser.Scene {
 
             //testing limit
             let limit
-            if (this.score < 300) {
+            if (this.score < 500) {
                 limit = 300
             } else {
-                limit = 400
+                limit = 900
             }
             if (lego.x < limit) {
                 close = true
@@ -376,10 +385,10 @@ class GameScene extends Phaser.Scene {
 
             //testing limit
             let limit
-            if (this.score < 300) {
+            if (this.score < 500) {
                 limit = 300
             } else {
-                limit = 400
+                limit = 900
             }
             if (lego.x < limit) {
                 close = true
@@ -388,15 +397,20 @@ class GameScene extends Phaser.Scene {
 
 
         //testing limit
-        /*if (close && this.corgi.body.touching.down) {
+        if (this.testing && close && this.corgi.body.touching.down) {
             this.corgi.setVelocityY(this.jumpVelocity)
             this.reversedCorgi.setVelocityY(-this.jumpVelocity)
 
-        }*/
+        }
 
 
-        if (minDistance > this.disLimit) {
-            this.disLimit = Phaser.Math.Between(this.minDisLimit, this.maxDisLimit)
+        if (minDistance > Math.min(1500, this.disLimit)) {
+            if (Phaser.Math.Between(0, 2)) {
+                this.disLimit = Phaser.Math.Between(this.minDisLimit, this.minDisLimit + this.limitRange)
+            } else {
+                this.disLimit = Phaser.Math.Between(this.maxDisLimit - this.limitRange, this.maxDisLimit)
+            }
+
             let tob
             if (this.score < 300) {
                 tob = 'topAndBottom'
@@ -410,7 +424,8 @@ class GameScene extends Phaser.Scene {
                     tob = 'bottom'
                 }
             }
-            this.addLego(this.spawnDistance, Phaser.Math.Between(0, 1), tob)
+            console.log(Math.max(this.disLimit - 1500, 0))
+            this.addLego(1500 + Math.max(this.disLimit - 1500, 0), Phaser.Math.Between(0, 1), tob)
         }
 
 
