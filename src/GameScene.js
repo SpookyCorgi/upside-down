@@ -7,15 +7,15 @@ class GameScene extends Phaser.Scene {
     }
 
     init() {
-        this.baseSpeed = -800
-        this.speed = -800
+        this.baseSpeed = -1200
+        this.speed = -1200
         this.speedLimit = -1700
         this.groundMargin = 4
         this.gameOver = false
         this.time = 0
         this.score = 0
         this.gravity = 4000
-        this.jumpVelocity = -1500
+        this.jumpVelocity = -1700
         this.spawnDistance = 1536
         this.maxDisLimit = 2000
         this.minDisLimit = 1000
