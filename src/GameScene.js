@@ -299,6 +299,9 @@ class GameScene extends Phaser.Scene {
         this.physics.pause()
         this.gameOver = true
         this.highscore = Math.max(this.highscore, Math.floor(this.score))
+        //change to highscore scene
+        this.scene.pause()
+        this.scene.launch('HighscoreScene')
     }
 
     update() {
