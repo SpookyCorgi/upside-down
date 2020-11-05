@@ -1,9 +1,10 @@
 let gameWidth = 1536
-let gameHeight = 1024
+let gameHeight = 864
 let ratio = window.innerWidth / window.innerHeight
 if (ratio < 1) {
     gameWidth = 1536
 }
+
 let config = {
     type: Phaser.AUTO,
     width: gameWidth,

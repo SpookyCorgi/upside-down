@@ -11,7 +11,7 @@ if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
 
-$sql = "SELECT player_name, score FROM highscores";
+$sql = "SELECT player_name, score FROM highscores ORDER BY score DESC";
 $result = $conn->query($sql);
 $data = array();
 if ($result->num_rows > 0) {

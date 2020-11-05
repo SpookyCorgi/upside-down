@@ -5,38 +5,65 @@ class HighscoreScene extends Phaser.Scene {
         })
     }
 
-    preload() {
-        //this.load.spritesheet('button', 'assets/button.png', { frameWidth: 128, frameHeight: 256 })
+    init(data) {
+        this.score = data.score
     }
     create() {
-        this.cameras.main.setBackgroundColor('rgba(0,0,0,0.8)')
-
-        //input
-        this.keyObj = this.input.keyboard.addKey('SPACE');
-        this.keyObj.on('down', function (event) {
-            this.scene.switch("GameScene")
-        }, this)        //mobile
-        this.input.on('pointerdown', function (pointer) {
-            this.scene.switch("GameScene")
-        }, this)
-
+        //get php echo
         this.getHighscore()
 
+        //bg color
+        this.cameras.main.setBackgroundColor('rgba(0,0,0,0.8)')
+
+        //title
+        this.add.text(550, 150, "Scoreboard", { fontSize: '64px', fill: '#ffffff' });
+
+        //button
+        this.button = this.add.sprite(768, 800, 'okButton', 0).setInteractive();
+
+        this.button.on('pointerover', function () {
+            this.setFrame(1);
+        });
+
+        this.button.on('pointerout', function () {
+            this.setFrame(0);
+        });
+
+        let that = this
+        this.button.on('pointerdown', function () {
+            this.setFrame(2);
+            that.sendHighscore()
+        });
+
+
+        this.button.on('pointerup', function () {
+
+            that.scene.switch("GameScene")
+        });
+
+    }
+
+    sendHighscore() {
+        let returnXHR = new XMLHttpRequest()
+        returnXHR.open("POST", "src/save_highscores.php", true)
+        returnXHR.setRequestHeader("Content-type", "application/json")
+        returnXHR.send("sheepy " + this.score)
+        //console.log(JSON.stringify(this.obj))
     }
 
     getHighscore() {
-        let oReq = new XMLHttpRequest();
+        let getXHR = new XMLHttpRequest()
         let that = this
-        oReq.addEventListener("load", function () {
-            let obj = JSON.parse(this.responseText);
-            for (let i = 0; i < obj.length; i++) {
-                that.add.text(450, 160 + 40 * (i + 1), (i + 1) + ".", { fontSize: '32px', fill: '#ffffff' });
-                that.add.text(525, 160 + 40 * (i + 1), 'Name : ' + obj[i].Name, { fontSize: '32px', fill: '#ffffff' });
-                that.add.text(825, 160 + 40 * (i + 1), " Score : " + obj[i].Score, { fontSize: '32px', fill: '#ffffff' });
+        getXHR.addEventListener("load", function () {
+            that.obj = JSON.parse(this.responseText)
+            for (let i = 0; i < that.obj.length; i++) {
+                that.add.text(450, 230 + 40 * (i + 1), (i + 1) + ".", { fontSize: '32px', fill: '#ffffff' });
+                that.add.text(520, 230 + 40 * (i + 1), 'Name : ' + that.obj[i].Name, { fontSize: '32px', fill: '#ffffff' });
+                that.add.text(870, 230 + 40 * (i + 1), " Score : " + that.obj[i].Score, { fontSize: '32px', fill: '#ffffff' });
             }
-        });
-        oReq.open("get", "src/fetch_highscores.php", true);
-        oReq.send();
+        })
+        getXHR.open("get", "src/fetch_highscores.php", true)
+        getXHR.send()
     }
 
     update() {

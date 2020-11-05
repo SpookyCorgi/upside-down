@@ -31,16 +31,18 @@ class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('bgBase', 'assets/background/base.png');
-        this.load.image('flyingSpaghetti', 'assets/flying_spaghetti.png');
+        this.load.image('bgBase', 'assets/background/base.png')
+        this.load.image('flyingSpaghetti', 'assets/flying_spaghetti.png')
         this.load.image('moon', 'assets/moon/moon.png');
-        this.load.image('clownMoon', 'assets/moon/clown_moon.png');
-        this.load.image('physGround', 'assets/background/physic_ground.png');
+        this.load.image('clownMoon', 'assets/moon/clown_moon.png')
+        this.load.image('physGround', 'assets/background/physic_ground.png')
         this.load.spritesheet('bgGround', 'assets/background/spritesheet.png', { frameWidth: 128, frameHeight: 256 })
-        this.load.spritesheet('corgi', 'assets/corgi/spritesheet.png', { frameWidth: 128, frameHeight: 128 });
-        this.load.spritesheet('reversedCorgi', 'assets/reversed-corgi/spritesheet.png', { frameWidth: 128, frameHeight: 128 });
+        this.load.spritesheet('corgi', 'assets/corgi/spritesheet.png', { frameWidth: 128, frameHeight: 128 })
+        this.load.spritesheet('reversedCorgi', 'assets/reversed-corgi/spritesheet.png', { frameWidth: 128, frameHeight: 128 })
         this.load.atlas('lego', 'assets/lego/lego.png', 'assets/lego/lego.json')
         this.load.atlas('reversedLego', 'assets/lego/reversed_lego.png', 'assets/lego/reversed_lego.json')
+
+        this.load.spritesheet('okButton', 'assets/ok_button.png', { frameWidth: 80, frameHeight: 48 })
     }
 
     create() {
@@ -60,17 +62,17 @@ class GameScene extends Phaser.Scene {
         //keyboard
         this.keyObj = this.input.keyboard.addKey('SPACE');  // Get key object
         this.keyObj.on('down', function (event) {
-            if (this.gameOver) {
+            /*if (this.gameOver) {
                 this.gameOver = false
                 this.scene.restart()
-            }
+            }*/
         }, this)
         //mobile
         this.input.on('pointerdown', function (pointer) {
-            if (this.gameOver) {
+            /*if (this.gameOver) {
                 this.gameOver = false
                 this.scene.restart()
-            }
+            }*/
             if (this.corgi.body.touching.down) {
                 this.corgi.setVelocityY(this.jumpVelocity)
             }
@@ -301,7 +303,7 @@ class GameScene extends Phaser.Scene {
         this.highscore = Math.max(this.highscore, Math.floor(this.score))
         //change to highscore scene
         this.scene.pause()
-        this.scene.launch('HighscoreScene')
+        this.scene.launch('HighscoreScene', { 'score': Math.floor(this.score) })
     }
 
     update() {
